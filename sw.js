@@ -1,5 +1,12 @@
 const CACHE = '531-v1';
-const ASSETS = ['/', '/index.html'];
+const BASE = '/531-strength';
+const ASSETS = [
+  BASE + '/',
+  BASE + '/index.html',
+  BASE + '/manifest.json',
+  BASE + '/icons/icon-192.png',
+  BASE + '/icons/icon-512.png',
+];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
