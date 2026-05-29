@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="5/3/1">
+<meta name="theme-color" content="#0e0e0f">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>5/3/1 Strength</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0e0e0f;--surface:#1a1a1c;--surface2:#232325;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);
+  --text:#f0ede8;--muted:#888884;
+  --accent:#e8d5a3;--accent2:#c4a96b;--accent-dim:rgba(232,213,163,0.12);
+  --red:#e07070;--red-dim:rgba(224,112,112,0.15);
+  --green:#7ec89a;--green-dim:rgba(126,200,154,0.15);
+  --blue:#7ab3d4;--blue-dim:rgba(122,179,212,0.12);
+  --orange:#e8a87c;--orange-dim:rgba(232,168,124,0.15);
+  --mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;
+  --radius:10px;--radius-lg:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;max-width:480px;margin:0 auto;padding-bottom:120px;}
+
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--bg);border-top:1px solid var(--border2);display:flex;z-index:20;padding:6px 0 env(safe-area-inset-bottom,6px);}
+.nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:8px 4px;border:none;background:transparent;color:var(--muted);font-family:var(--mono);font-size:9px;letter-spacing:.5px;cursor:pointer;transition:color .15s;}
+.nav-tab .nav-icon{font-size:18px;line-height:1;}
+.nav-tab.active{color:var(--accent);}
+
+.page{display:none;}.page.active{display:block;}
+
+.app-header{padding:20px 20px 12px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:10;}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.app-title{font-family:var(--mono);font-size:18px;font-weight:500;color:var(--accent);letter-spacing:-.5px;}
+.app-subtitle{font-size:11px;color:var(--muted);font-family:var(--mono);letter-spacing:1px;text-transform:uppercase;}
+.header-btns{display:flex;gap:6px;}
+.icon-btn{background:var(--surface);border:1px solid var(--border);color:var(--text);width:36px;height:36px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:background .15s;}
+.icon-btn:active{background:var(--surface2);}
+
+.run-banner{margin:10px 20px 0;border-radius:var(--radius);overflow:hidden;}
+.run-banner-inner{padding:10px 14px;display:flex;align-items:center;gap:10px;font-size:12px;}
+.run-banner.fresh .run-banner-inner{background:var(--green-dim);border:1px solid rgba(126,200,154,0.25);}
+.run-banner.moderate .run-banner-inner{background:var(--orange-dim);border:1px solid rgba(232,168,124,0.25);}
+.run-banner.cooked .run-banner-inner{background:var(--red-dim);border:1px solid rgba(224,112,112,0.25);}
+.run-banner.none .run-banner-inner{display:none;}
+.run-banner-icon{font-size:16px;flex-shrink:0;}
+.run-banner-text{flex:1;color:var(--text);line-height:1.4;}
+.run-banner-text strong{font-weight:600;}
+.run-banner-close{color:var(--muted);background:none;border:none;cursor:pointer;font-size:18px;padding:2px;}
+
+.phase-row{display:flex;align-items:center;gap:6px;padding:10px 20px 0;flex-wrap:wrap;}
+.phase-lbl{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;}
+.phase-chip{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:3px 10px;border-radius:20px;border:1px solid var(--border2);color:var(--muted);background:transparent;cursor:pointer;transition:all .15s;}
+.phase-chip.active-base{background:var(--blue-dim);border-color:var(--blue);color:var(--blue);}
+.phase-chip.active-build{background:var(--green-dim);border-color:var(--green);color:var(--green);}
+.phase-chip.active-peak{background:var(--orange-dim);border-color:var(--orange);color:var(--orange);}
+.phase-chip.active-taper{background:var(--accent-dim);border-color:var(--accent2);color:var(--accent2);}
+.phase-chip.active-recovery{background:var(--red-dim);border-color:var(--red);color:var(--red);}
+
+.mode-toggle{display:flex;background:var(--surface);border-radius:8px;padding:3px;gap:2px;}
+.mode-btn{flex:1;padding:7px 4px;border:none;border-radius:6px;font-family:var(--sans);font-size:11px;font-weight:500;cursor:pointer;transition:all .18s;color:var(--muted);background:transparent;}
+.mode-btn.active{background:var(--accent);color:#1a1500;}
+
+.week-nav{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);}
+.week-label{font-family:var(--mono);font-size:13px;color:var(--accent);font-weight:500;}
+.week-sub{font-size:11px;color:var(--muted);text-align:center;}
+.nav-btn{background:var(--surface);border:1px solid var(--border);color:var(--text);width:32px;height:32px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:background .15s;}
+.nav-btn:disabled{opacity:.3;cursor:default;}
+.nav-btn:not(:disabled):active{background:var(--surface2);}
+
+.content{padding:14px 20px;}
+
+.day-badge{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);border:1px solid var(--border);border-radius:4px;padding:3px 8px;margin-bottom:14px;}
+.day-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);}
+
+.lift-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:14px;overflow:hidden;}
+.lift-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 10px;border-bottom:1px solid var(--border);}
+.lift-name{font-weight:600;font-size:15px;letter-spacing:-.2px;cursor:pointer;}
+.lift-name:hover{color:var(--accent);}
+.lift-max-badge{font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:2px 8px;cursor:pointer;}
+.lift-max-badge:hover{border-color:var(--border2);color:var(--text);}
+
+.sets-table{width:100%;padding:6px 0;}
+.set-row{display:flex;align-items:center;padding:8px 16px;gap:10px;transition:background .1s;}
+.set-row.top-set{background:var(--accent-dim);}
+.set-label{font-family:var(--mono);font-size:11px;color:var(--muted);width:28px;text-align:right;flex-shrink:0;}
+.set-weight{font-family:var(--mono);font-size:22px;font-weight:500;color:var(--text);flex:1;letter-spacing:-1px;cursor:pointer;}
+.set-weight:hover{color:var(--accent);}
+.set-weight .unit{font-size:13px;color:var(--muted);font-weight:400;}
+.set-reps{font-size:12px;color:var(--muted);font-family:var(--mono);flex-shrink:0;}
+.set-reps.top{color:var(--accent);}
+.check-btn{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--border2);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:14px;flex-shrink:0;transition:all .15s;}
+.check-btn.done{background:var(--green);border-color:var(--green);color:#0a2013;}
+
+.ab-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:14px;overflow:hidden;}
+.ab-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 10px;border-bottom:1px solid var(--border);}
+.ab-title{font-weight:600;font-size:15px;}
+.ab-subtitle{font-size:11px;color:var(--muted);font-family:var(--mono);}
+.ab-row{display:flex;align-items:center;padding:9px 16px;gap:12px;}
+.ab-name{flex:1;font-size:14px;}
+.ab-reps{font-family:var(--mono);font-size:12px;color:var(--muted);}
+
+.fsl-section{border-top:1px solid var(--border);padding:10px 16px 12px;}
+.fsl-label{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.fsl-row{display:flex;align-items:center;gap:10px;}
+.fsl-weight{font-family:var(--mono);font-size:18px;font-weight:500;color:var(--accent2);cursor:pointer;}
+.fsl-weight .unit{font-size:12px;font-weight:400;color:var(--muted);}
+.fsl-reps{font-size:12px;color:var(--muted);font-family:var(--mono);flex:1;}
+
+.warmup-banner{margin-top:6px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;transition:background .15s;}
+.warmup-banner:active{background:var(--surface);}
+.warmup-icon{font-size:20px;}
+.warmup-text .title{font-size:13px;font-weight:500;}
+.warmup-text .sub{font-size:11px;color:var(--muted);margin-top:1px;}
+.warmup-arrow{margin-left:auto;color:var(--muted);font-size:16px;}
+
+.cycle-footer{padding:4px 20px 0;display:flex;justify-content:space-between;align-items:center;}
+.cycle-dots{display:flex;gap:5px;align-items:center;}
+.cycle-dot{width:8px;height:8px;border-radius:50%;background:var(--border2);transition:background .2s;}
+.cycle-dot.active{background:var(--accent);}
+.cycle-dot.done{background:var(--green);}
+.text-btn{background:none;border:none;font-family:var(--mono);font-size:11px;color:var(--muted);cursor:pointer;padding:4px 0;letter-spacing:.5px;}
+.text-btn:hover{color:var(--text);}
+.text-btn.danger:hover{color:var(--red);}
+.divider{height:1px;background:var(--border);margin:10px 0;}
+
+.page-header{padding:20px 20px 16px;border-bottom:1px solid var(--border);}
+.page-title{font-family:var(--mono);font-size:16px;font-weight:500;color:var(--accent);}
+.page-sub{font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:2px;}
+
+.tool-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:14px;padding:16px;}
+.tool-title{font-weight:600;font-size:14px;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.tool-icon{font-size:18px;}
+.calc-row{display:flex;gap:8px;margin-bottom:10px;align-items:center;}
+.calc-label{font-size:12px;color:var(--muted);width:80px;flex-shrink:0;font-family:var(--mono);}
+.calc-input{flex:1;background:var(--bg);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:var(--mono);font-size:16px;font-weight:500;padding:8px 12px;outline:none;transition:border-color .15s;}
+.calc-input:focus{border-color:var(--accent2);}
+.calc-btn{width:100%;background:var(--accent);color:#1a1500;border:none;border-radius:8px;font-family:var(--sans);font-size:14px;font-weight:600;padding:11px;cursor:pointer;margin-top:4px;transition:opacity .15s;}
+.calc-btn:active{opacity:.85;}
+.calc-result{margin-top:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:none;}
+.calc-result.show{display:block;}
+.result-main{font-family:var(--mono);font-size:28px;font-weight:500;color:var(--accent);letter-spacing:-1px;}
+.result-sub{font-size:12px;color:var(--muted);margin-top:4px;font-family:var(--mono);}
+
+.plate-display{margin-top:12px;display:none;}
+.plate-display.show{display:block;}
+.plate-target{font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:8px;}
+.plates-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+.plate-pill{font-family:var(--mono);font-size:12px;font-weight:500;padding:4px 10px;border-radius:20px;border:1.5px solid;}
+.p-45{color:#e07070;border-color:#e07070;background:rgba(224,112,112,0.1);}
+.p-35{color:#e8a87c;border-color:#e8a87c;background:rgba(232,168,124,0.1);}
+.p-25{color:#e8d5a3;border-color:#e8d5a3;background:rgba(232,213,163,0.1);}
+.p-10{color:#7ab3d4;border-color:#7ab3d4;background:rgba(122,179,212,0.1);}
+.p-5{color:#7ec89a;border-color:#7ec89a;background:rgba(126,200,154,0.1);}
+.p-25s{color:#c4a96b;border-color:#c4a96b;background:rgba(196,169,107,0.1);}
+.plate-bar{font-family:var(--mono);font-size:11px;color:var(--muted);}
+.plate-note{font-size:11px;color:var(--muted);margin-top:8px;font-family:var(--mono);}
+
+.log-empty{text-align:center;padding:40px 20px;color:var(--muted);font-family:var(--mono);font-size:13px;line-height:1.7;}
+.log-entry{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:10px;padding:14px 16px;}
+.log-date{font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:6px;}
+.log-maxes{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+.log-max-pill{font-family:var(--mono);font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:2px 8px;color:var(--text);}
+.log-meta{display:flex;gap:6px;flex-wrap:wrap;}
+.log-tag{font-size:11px;font-family:var(--mono);padding:2px 8px;border-radius:20px;}
+.log-tag.phase-base{color:var(--blue);background:var(--blue-dim);}
+.log-tag.phase-build{color:var(--green);background:var(--green-dim);}
+.log-tag.phase-peak{color:var(--orange);background:var(--orange-dim);}
+.log-tag.phase-taper{color:var(--accent2);background:var(--accent-dim);}
+.log-tag.phase-recovery{color:var(--red);background:var(--red-dim);}
+.log-tag.rpe-high{color:var(--red);background:var(--red-dim);}
+.log-tag.rpe-mid{color:var(--orange);background:var(--orange-dim);}
+.log-tag.rpe-low{color:var(--green);background:var(--green-dim);}
+.log-tag.fatigue-fresh{color:var(--green);background:var(--green-dim);}
+.log-tag.fatigue-moderate{color:var(--orange);background:var(--orange-dim);}
+.log-tag.fatigue-cooked{color:var(--red);background:var(--red-dim);}
+.log-notes{font-size:12px;color:var(--muted);margin-top:8px;font-style:italic;line-height:1.5;}
+
+.panel-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;display:none;align-items:flex-end;}
+.panel-overlay.open{display:flex;}
+.panel{background:var(--surface);border-radius:20px 20px 0 0;border-top:1px solid var(--border2);width:100%;max-width:480px;margin:0 auto;padding:20px 20px 40px;max-height:88vh;overflow-y:auto;}
+.panel-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 20px;}
+.panel-title{font-family:var(--mono);font-size:14px;font-weight:500;color:var(--accent);margin-bottom:14px;letter-spacing:-.3px;}
+.setting-group{margin-bottom:16px;}
+.setting-label{font-size:11px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-family:var(--mono);margin-bottom:6px;}
+.setting-input{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-family:var(--mono);font-size:18px;font-weight:500;padding:10px 14px;outline:none;transition:border-color .15s;}
+.setting-input:focus{border-color:var(--accent2);}
+.setting-textarea{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-family:var(--sans);font-size:14px;padding:10px 14px;outline:none;resize:none;height:80px;transition:border-color .15s;}
+.setting-textarea:focus{border-color:var(--accent2);}
+.save-btn{width:100%;background:var(--accent);color:#1a1500;border:none;border-radius:var(--radius);font-family:var(--sans);font-size:15px;font-weight:600;padding:13px;cursor:pointer;margin-top:4px;transition:opacity .15s;}
+.save-btn:active{opacity:.85;}
+.secondary-btn{width:100%;background:transparent;color:var(--text);border:1px solid var(--border2);border-radius:var(--radius);font-family:var(--sans);font-size:14px;font-weight:500;padding:12px;cursor:pointer;margin-top:8px;transition:background .15s;}
+.secondary-btn:active{background:var(--surface2);}
+.secondary-btn.danger{color:var(--red);border-color:rgba(224,112,112,0.3);}
+
+.checkin-options{display:flex;gap:8px;margin-bottom:16px;}
+.checkin-opt{flex:1;padding:12px 6px;border:1.5px solid var(--border2);border-radius:var(--radius);background:transparent;cursor:pointer;text-align:center;transition:all .15s;font-family:var(--sans);}
+.checkin-opt .opt-emoji{font-size:22px;margin-bottom:4px;}
+.checkin-opt .opt-label{font-size:11px;color:var(--muted);font-family:var(--mono);}
+.checkin-opt.sel-fresh{border-color:var(--green);background:var(--green-dim);}
+.checkin-opt.sel-moderate{border-color:var(--orange);background:var(--orange-dim);}
+.checkin-opt.sel-cooked{border-color:var(--red);background:var(--red-dim);}
+.rpe-row{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:16px;}
+.rpe-btn{width:34px;height:34px;border:1px solid var(--border2);border-radius:6px;background:transparent;font-family:var(--mono);font-size:13px;color:var(--muted);cursor:pointer;transition:all .15s;}
+.rpe-btn.active{background:var(--accent);border-color:var(--accent);color:#1a1500;}
+
+.name-edit-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.name-edit-label{font-size:12px;color:var(--muted);font-family:var(--mono);width:60px;flex-shrink:0;}
+.name-edit-input{flex:1;background:var(--bg);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:var(--sans);font-size:14px;font-weight:500;padding:8px 12px;outline:none;}
+.name-edit-input:focus{border-color:var(--accent2);}
+
+.ab-list{margin-bottom:10px;}
+.ab-edit-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);}
+.ab-edit-row:last-child{border-bottom:none;}
+.ab-edit-name{flex:1;background:transparent;border:none;color:var(--text);font-family:var(--sans);font-size:14px;outline:none;padding:2px 0;}
+.ab-edit-name:focus{color:var(--accent);}
+.ab-del-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;padding:2px 4px;line-height:1;}
+.ab-del-btn:hover{color:var(--red);}
+.ab-add-btn{background:transparent;border:1px dashed var(--border2);border-radius:8px;color:var(--muted);font-family:var(--mono);font-size:12px;padding:8px;width:100%;cursor:pointer;margin-top:6px;}
+.ab-add-btn:hover{color:var(--accent);border-color:var(--accent);}
+
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:10px 18px;font-size:13px;font-family:var(--mono);color:var(--text);opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap;z-index:200;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+.inline-panel{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:150;display:none;align-items:center;justify-content:center;padding:20px;}
+.inline-panel.open{display:flex;}
+.inline-box{background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border2);padding:20px;width:100%;}
+.inline-title{font-family:var(--mono);font-size:13px;color:var(--accent);margin-bottom:14px;}
+.inline-actions{display:flex;gap:8px;margin-top:14px;}
+.inline-ok{flex:2;background:var(--accent);color:#1a1500;border:none;border-radius:8px;font-family:var(--sans);font-size:14px;font-weight:600;padding:10px;cursor:pointer;}
+.inline-cancel{flex:1;background:transparent;color:var(--muted);border:1px solid var(--border2);border-radius:8px;font-family:var(--sans);font-size:14px;padding:10px;cursor:pointer;}
+</style>
+</head>
+<body>
+
+<!-- WORKOUT PAGE -->
+<div class="page active" id="page-workout">
+  <div class="app-header">
+    <div class="header-top">
+      <div>
+        <div class="app-title">5/3/1</div>
+        <div class="app-subtitle">Marathon Strength</div>
+      </div>
+      <div class="header-btns">
+        <button class="icon-btn" onclick="openCheckin()" title="Pre-workout check-in" aria-label="Check-in">🏃</button>
+        <button class="icon-btn" onclick="openSettings()" aria-label="Settings">⚙</button>
+      </div>
+    </div>
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="btn-one"   onclick="setMode('one')">One Day</button>
+      <button class="mode-btn" id="btn-two-a" onclick="setMode('two-a')">Day 1</button>
+      <button class="mode-btn" id="btn-two-b" onclick="setMode('two-b')">Day 2</button>
+    </div>
+  </div>
+
+  <div class="phase-row" id="phase-row">
+    <span class="phase-lbl">PHASE:</span>
+  </div>
+
+  <div id="run-banner-wrap">
+    <div class="run-banner none" id="run-banner">
+      <div class="run-banner-inner">
+        <span class="run-banner-icon" id="run-banner-icon"></span>
+        <span class="run-banner-text" id="run-banner-text"></span>
+        <button class="run-banner-close" onclick="dismissBanner()" aria-label="Dismiss">×</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="week-nav">
+    <button class="nav-btn" id="prev-btn" onclick="changeWeek(-1)">&#8249;</button>
+    <div style="text-align:center">
+      <div class="week-label" id="week-label">Week 1</div>
+      <div class="week-sub" id="week-sub">3 sets of 5</div>
+    </div>
+    <button class="nav-btn" id="next-btn" onclick="changeWeek(1)">&#8250;</button>
+  </div>
+
+  <div class="content" id="main-content"></div>
+
+  <div class="cycle-footer">
+    <div class="cycle-dots" id="cycle-dots"></div>
+    <div style="display:flex;gap:12px">
+      <button class="text-btn" onclick="resetChecks()">clear &#10003;</button>
+      <button class="text-btn danger" onclick="nextCycle()">next cycle &#8594;</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOOLS PAGE -->
+<div class="page" id="page-tools">
+  <div class="page-header">
+    <div class="page-title">// tools</div>
+    <div class="page-sub">calculators &amp; data</div>
+  </div>
+  <div class="content">
+    <div class="tool-card">
+      <div class="tool-title"><span class="tool-icon">&#x1F3CB;</span> Plate Calculator</div>
+      <div class="calc-row">
+        <span class="calc-label">target</span>
+        <input class="calc-input" type="number" id="plate-weight" inputmode="decimal" placeholder="135" step="5">
+        <span style="font-family:var(--mono);font-size:13px;color:var(--muted);padding-left:4px">lbs</span>
+      </div>
+      <div class="calc-row">
+        <span class="calc-label">bar</span>
+        <input class="calc-input" type="number" id="bar-weight" inputmode="decimal" value="45" step="5">
+        <span style="font-family:var(--mono);font-size:13px;color:var(--muted);padding-left:4px">lbs</span>
+      </div>
+      <button class="calc-btn" onclick="calcPlates()">Calculate plates</button>
+      <div class="plate-display" id="plate-display">
+        <div class="plate-target" id="plate-target"></div>
+        <div class="plates-row" id="plates-row"></div>
+        <div class="plate-note" id="plate-note"></div>
+      </div>
+    </div>
+
+    <div class="tool-card">
+      <div class="tool-title"><span class="tool-icon">&#x1F4C8;</span> 1RM Estimator</div>
+      <div class="calc-row">
+        <span class="calc-label">weight</span>
+        <input class="calc-input" type="number" id="rm-weight" inputmode="decimal" placeholder="185" step="5">
+        <span style="font-family:var(--mono);font-size:13px;color:var(--muted);padding-left:4px">lbs</span>
+      </div>
+      <div class="calc-row">
+        <span class="calc-label">reps done</span>
+        <input class="calc-input" type="number" id="rm-reps" inputmode="decimal" placeholder="8" min="1" max="30">
+      </div>
+      <button class="calc-btn" onclick="calc1RM()">Estimate 1RM</button>
+      <div class="calc-result" id="rm-result">
+        <div class="result-main" id="rm-main"></div>
+        <div class="result-sub" id="rm-sub"></div>
+      </div>
+    </div>
+
+    <div class="tool-card">
+      <div class="tool-title"><span class="tool-icon">&#x1F4BE;</span> Backup &amp; Restore</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.6;">Export all data as JSON — maxes, history, settings. Import to restore on any device.</p>
+      <button class="calc-btn" onclick="exportData()">Export backup</button>
+      <button class="secondary-btn" onclick="document.getElementById('import-file').click()">Import backup</button>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+    </div>
+  </div>
+</div>
+
+<!-- LOG PAGE -->
+<div class="page" id="page-log">
+  <div class="page-header">
+    <div class="page-title">// history</div>
+    <div class="page-sub">cycle log &amp; check-ins</div>
+  </div>
+  <div class="content" id="log-content"></div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-tab active" id="tab-workout" onclick="showPage('workout')">
+    <span class="nav-icon">&#x1F3CB;</span>Workout
+  </button>
+  <button class="nav-tab" id="tab-tools" onclick="showPage('tools')">
+    <span class="nav-icon">&#x1F527;</span>Tools
+  </button>
+  <button class="nav-tab" id="tab-log" onclick="showPage('log')">
+    <span class="nav-icon">&#x1F4CB;</span>Log
+  </button>
+</nav>
+
+<!-- SETTINGS PANEL -->
+<div class="panel-overlay" id="settings-overlay" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="panel">
+    <div class="panel-handle"></div>
+    <div class="panel-title">// training maxes</div>
+    <div id="maxes-inputs"></div>
+    <div class="divider"></div>
+    <div class="panel-title">// cycle increments</div>
+    <div id="increments-inputs"></div>
+    <div class="divider"></div>
+    <div class="panel-title">// lift names</div>
+    <div id="lift-name-list"></div>
+    <div class="divider"></div>
+    <div class="panel-title">// core exercises</div>
+    <div class="ab-list" id="ab-edit-list"></div>
+    <button class="ab-add-btn" onclick="addAbExercise()">+ add exercise</button>
+    <div style="margin-top:16px">
+      <button class="save-btn" onclick="saveSettings()">Save all settings</button>
+      <button class="secondary-btn danger" onclick="confirmReset()">Reset all data</button>
+    </div>
+  </div>
+</div>
+
+<!-- CHECK-IN PANEL -->
+<div class="panel-overlay" id="checkin-overlay" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="panel">
+    <div class="panel-handle"></div>
+    <div class="panel-title">// pre-workout check-in</div>
+    <div class="setting-label">How are your legs feeling?</div>
+    <div class="checkin-options">
+      <button class="checkin-opt" id="opt-fresh"    onclick="selectFatigue('fresh')"><div class="opt-emoji">&#x1F7E2;</div><div class="opt-label">fresh</div></button>
+      <button class="checkin-opt" id="opt-moderate" onclick="selectFatigue('moderate')"><div class="opt-emoji">&#x1F7E1;</div><div class="opt-label">moderate</div></button>
+      <button class="checkin-opt" id="opt-cooked"   onclick="selectFatigue('cooked')"><div class="opt-emoji">&#x1F534;</div><div class="opt-label">cooked</div></button>
+    </div>
+    <div class="setting-label">Session RPE (how hard do you expect it to feel?)</div>
+    <div class="rpe-row" id="rpe-row"></div>
+    <div class="setting-label">Notes (optional)</div>
+    <textarea class="setting-textarea" id="checkin-notes" placeholder="e.g. 20-miler two days ago, left hamstring tight"></textarea>
+    <button class="save-btn" style="margin-top:12px" onclick="saveCheckin()">Save check-in</button>
+    <button class="secondary-btn" onclick="document.getElementById('checkin-overlay').classList.remove('open')">Skip</button>
+  </div>
+</div>
+
+<!-- INLINE POPUP (plates / quick edit) -->
+<div class="inline-panel" id="plate-inline" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="inline-box">
+    <div class="inline-title" id="plate-inline-title"></div>
+    <div class="plates-row" id="plate-inline-row" style="margin-bottom:8px;flex-wrap:wrap;gap:6px"></div>
+    <div class="plate-note" id="plate-inline-note"></div>
+    <div class="inline-actions">
+      <button class="inline-ok" id="plate-inline-ok">Got it</button>
+      <button class="inline-cancel" onclick="document.getElementById('plate-inline').classList.remove('open')">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const LIFT_KEYS=['squat','ohp','dl','bench'];
+const DEFAULT_NAMES={squat:'Squat',ohp:'Overhead Press',dl:'Deadlift',bench:'Bench'};
+const DEFAULT_ABS=['Plank','Hollow holds','Dead bugs','Bicycle crunches','Leg raises'];
+const PHASES=['base','build','peak','taper','recovery'];
+
+const DEF={
+  maxes:{squat:130,ohp:95,dl:140,bench:100},
+  liftNames:{...DEFAULT_NAMES},
+  increments:{squat:10,ohp:5,dl:10,bench:5},
+  week:1,mode:'one',checks:{},cycleNum:1,
+  phase:null,checkin:null,bannerDismissed:false,
+  abExercises:[...DEFAULT_ABS],history:[]
+};
+
+function loadState(){
+  try{
+    const s=localStorage.getItem('531_v2');
+    if(!s)return{...DEF,maxes:{...DEF.maxes},liftNames:{...DEF.liftNames},increments:{...DEF.increments},abExercises:[...DEF.abExercises],history:[]};
+    const p=JSON.parse(s);
+    return{...DEF,...p,
+      maxes:{...DEF.maxes,...(p.maxes||{})},
+      liftNames:{...DEF.liftNames,...(p.liftNames||{})},
+      increments:{...DEF.increments,...(p.increments||{})},
+      abExercises:p.abExercises||[...DEF.abExercises],
+      history:p.history||[]};
+  }catch{return{...DEF,maxes:{...DEF.maxes},liftNames:{...DEF.liftNames},increments:{...DEF.increments},abExercises:[...DEF.abExercises],history:[]};}
+}
+function save(){localStorage.setItem('531_v2',JSON.stringify(state));}
+let state=loadState();
+
+// 5/3/1
+const WPERC=[[0.55,0.625,0.70],[0.625,0.70,0.775],[0.70,0.775,0.85]];
+const WCFG=[
+  {label:'Week 1',sub:'3 sets of 5',reps:['5','5','5+'],hasFSL:true},
+  {label:'Week 2',sub:'3 sets of 5 (heavier)',reps:['5','5','5+'],hasFSL:true},
+  {label:'Week 3',sub:'3 sets of 3',reps:['5','3','1+'],hasFSL:false}
+];
+function r5(n){return Math.round(n/5)*5;}
+function getSets(tm,wi){return WPERC[wi].map((p,i)=>({weight:r5(tm*p),reps:WCFG[wi].reps[i],isTop:i===2}));}
+function getFSL(tm,wi){return WCFG[wi].hasFSL?r5(tm*WPERC[wi][0]):null;}
+
+// Pages
+function showPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+  if(name==='log')renderLog();
+}
+
+// Render workout
+function render(){
+  const wi=state.week-1;
+  const cfg=WCFG[wi];
+  document.getElementById('week-label').textContent=cfg.label;
+  document.getElementById('week-sub').textContent=cfg.sub;
+  document.getElementById('prev-btn').disabled=state.week===1;
+  document.getElementById('next-btn').disabled=state.week===3;
+  ['one','two-a','two-b'].forEach(m=>document.getElementById('btn-'+m).classList.toggle('active',state.mode===m));
+
+  // dots
+  const dots=document.getElementById('cycle-dots');
+  dots.innerHTML='';
+  for(let i=1;i<=3;i++){
+    const d=document.createElement('div');
+    d.className='cycle-dot'+(i<state.week?' done':i===state.week?' active':'');
+    dots.appendChild(d);
+  }
+
+  renderPhaseChips();
+  renderBanner();
+
+  let lks=state.mode==='one'?LIFT_KEYS:state.mode==='two-a'?['squat','ohp']:['dl','bench'];
+  const c=document.getElementById('main-content');
+  c.innerHTML='';
+
+  if(state.mode!=='one'){
+    const b=document.createElement('div');
+    b.className='day-badge';
+    b.innerHTML='<span class="day-dot"></span>'+(state.mode==='two-a'?'DAY ONE':'DAY TWO');
+    c.appendChild(b);
+  }
+
+  lks.forEach(lk=>{
+    const tm=state.maxes[lk];
+    const nm=state.liftNames[lk]||DEFAULT_NAMES[lk];
+    const sets=getSets(tm,wi);
+    const fsl=state.mode==='one'?getFSL(tm,wi):null;
+
+    const card=document.createElement('div');
+    card.className='lift-card';
+    card.innerHTML=`
+      <div class="lift-header">
+        <span class="lift-name" onclick="editLiftName('${lk}')" title="Tap to rename">${nm}</span>
+        <span class="lift-max-badge" onclick="editTM('${lk}')" title="Tap to edit">${tm} lbs TM</span>
+      </div>
+      <div class="sets-table" id="sets-${lk}"></div>`;
+    c.appendChild(card);
+
+    const tbl=card.querySelector('#sets-'+lk);
+    sets.forEach((s,i)=>{
+      const ck=`${lk}-${state.week}-${i}`;
+      const done=!!state.checks[ck];
+      const row=document.createElement('div');
+      row.className='set-row'+(s.isTop?' top-set':'');
+      row.innerHTML=`
+        <span class="set-label">${i+1}</span>
+        <span class="set-weight" onclick="showPlateInline(${s.weight})" title="Tap for plates">${s.weight}<span class="unit"> lbs</span></span>
+        <span class="set-reps${s.isTop?' top':''}">${s.reps} reps</span>
+        <button class="check-btn${done?' done':''}" onclick="toggleCheck('${ck}')">${done?'&#10003;':''}</button>`;
+      tbl.appendChild(row);
+    });
+
+    if(fsl!==null){
+      const fck=`${lk}-${state.week}-fsl`;
+      const fd=!!state.checks[fck];
+      const fd2=document.createElement('div');
+      fd2.className='fsl-section';
+      fd2.innerHTML=`
+        <div class="fsl-label">First Set Last (FSL)</div>
+        <div class="fsl-row">
+          <span class="fsl-weight" onclick="showPlateInline(${fsl})" title="Tap for plates">${fsl}<span class="unit"> lbs</span></span>
+          <span class="fsl-reps">5 sets x 5 reps</span>
+          <button class="check-btn${fd?' done':''}" onclick="toggleCheck('${fck}')">${fd?'&#10003;':''}</button>
+        </div>`;
+      card.appendChild(fd2);
+    }
+  });
+
+  // Core card
+  if(state.abExercises&&state.abExercises.length>0){
+    const ack=`ab-${state.week}-all`;
+    const ad=!!state.checks[ack];
+    const ac=document.createElement('div');
+    ac.className='ab-card';
+    ac.innerHTML=`
+      <div class="ab-header">
+        <div><div class="ab-title">Core Work</div><div class="ab-subtitle">between sets &middot; 5 reps each</div></div>
+        <button class="check-btn${ad?' done':''}" onclick="toggleCheck('${ack}')">${ad?'&#10003;':''}</button>
+      </div>
+      <div class="ab-exercises">${state.abExercises.map((ex,i)=>`
+        <div class="ab-row">
+          <span class="set-label">${i+1}</span>
+          <span class="ab-name">${ex}</span>
+          <span class="ab-reps">x 5</span>
+        </div>`).join('')}
+      </div>`;
+    c.appendChild(ac);
+  }
+
+  // Warmup
+  const w=document.createElement('a');
+  w.className='warmup-banner';
+  w.href='https://www.youtube.com/watch?v=xT_WB7V9ZJ0';
+  w.target='_blank';w.rel='noopener';
+  w.innerHTML='<span class="warmup-icon">&#9654;</span><div class="warmup-text"><div class="title">Warm-Up Routine</div><div class="sub">YouTube &middot; Pre-lift mobility</div></div><span class="warmup-arrow">&#x2197;</span>';
+  c.appendChild(w);
+}
+
+function renderPhaseChips(){
+  const row=document.getElementById('phase-row');
+  const lbl=row.querySelector('.phase-lbl');
+  row.innerHTML='';
+  row.appendChild(lbl);
+  PHASES.forEach(ph=>{
+    const ch=document.createElement('button');
+    ch.className='phase-chip'+(state.phase===ph?' active-'+ph:'');
+    ch.textContent=ph;
+    ch.onclick=()=>{state.phase=state.phase===ph?null:ph;save();render();};
+    row.appendChild(ch);
+  });
+}
+
+function renderBanner(){
+  const banner=document.getElementById('run-banner');
+  const ci=state.checkin;
+  if(!ci||state.bannerDismissed){banner.className='run-banner none';return;}
+  let cls='none',icon='',msg='';
+  if(ci.fatigue==='cooked'){cls='cooked';icon='&#x1F534;';msg='<strong>Legs cooked.</strong> Consider dropping top set 10-15% and skip AMRAP today.';}
+  else if(ci.fatigue==='moderate'){cls='moderate';icon='&#x1F7E1;';msg='<strong>Moderate fatigue.</strong> Extra warm-up sets. Listen to how set 1 feels.';}
+  else if(ci.fatigue==='fresh'){cls='fresh';icon='&#x1F7E2;';msg='<strong>Feeling fresh.</strong> Good session to push your AMRAP top set hard.';}
+  if((state.phase==='taper'||state.phase==='peak')&&ci.fatigue!=='cooked'){
+    cls='moderate';icon='&#x1F7E1;';
+    msg='<strong>'+(state.phase==='taper'?'Taper':'Peak')+' week.</strong> Stick to prescribed reps &mdash; don\'t burn matches before race day.';
+  }
+  if(cls==='none'){banner.className='run-banner none';return;}
+  banner.className='run-banner '+cls;
+  document.getElementById('run-banner-icon').innerHTML=icon;
+  document.getElementById('run-banner-text').innerHTML=msg;
+}
+function dismissBanner(){state.bannerDismissed=true;save();render();}
+
+// Actions
+function setMode(m){state.mode=m;save();render();}
+function changeWeek(d){state.week=Math.min(3,Math.max(1,state.week+d));save();render();}
+function toggleCheck(k){state.checks[k]=!state.checks[k];save();render();if(state.checks[k])showToast('Logged &#10003;');}
+function resetChecks(){state.checks={};save();render();showToast('Checks cleared');}
+function nextCycle(){
+  if(!confirm('Advance to next cycle? Maxes will increase by your increments.'))return;
+  state.history.unshift({
+    date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),
+    cycleNum:state.cycleNum,maxes:{...state.maxes},
+    phase:state.phase,checkin:state.checkin
+  });
+  LIFT_KEYS.forEach(k=>state.maxes[k]+=state.increments[k]);
+  state.week=1;state.checks={};state.checkin=null;state.bannerDismissed=false;state.cycleNum++;
+  save();render();showToast('Cycle '+state.cycleNum+' started!');
+}
+
+// Quick edit TM
+function editTM(lk){
+  const nm=state.liftNames[lk]||DEFAULT_NAMES[lk];
+  document.getElementById('plate-inline-title').textContent='Edit training max — '+nm;
+  document.getElementById('plate-inline-row').innerHTML=
+    '<input class="calc-input" type="number" id="tm-inline-val" inputmode="decimal" value="'+state.maxes[lk]+'" step="5" style="width:130px;font-size:22px">'+
+    '<span style="font-family:var(--mono);font-size:14px;color:var(--muted)">lbs</span>';
+  document.getElementById('plate-inline-note').textContent='';
+  const ok=document.getElementById('plate-inline-ok');
+  ok.textContent='Save';
+  ok.onclick=()=>{
+    const v=parseFloat(document.getElementById('tm-inline-val').value);
+    if(!isNaN(v)&&v>0){state.maxes[lk]=v;save();render();showToast('TM updated');}
+    document.getElementById('plate-inline').classList.remove('open');
+  };
+  document.getElementById('plate-inline').classList.add('open');
+}
+
+// Quick rename lift
+function editLiftName(lk){
+  const cur=state.liftNames[lk]||DEFAULT_NAMES[lk];
+  document.getElementById('plate-inline-title').textContent='Rename lift';
+  document.getElementById('plate-inline-row').innerHTML=
+    '<input class="calc-input" type="text" id="nm-inline-val" value="'+cur+'" style="width:100%;font-size:18px">';
+  document.getElementById('plate-inline-note').textContent='';
+  const ok=document.getElementById('plate-inline-ok');
+  ok.textContent='Save';
+  ok.onclick=()=>{
+    const v=document.getElementById('nm-inline-val').value.trim();
+    if(v){state.liftNames[lk]=v;save();render();showToast('Renamed');}
+    document.getElementById('plate-inline').classList.remove('open');
+  };
+  document.getElementById('plate-inline').classList.add('open');
+}
+
+// Plates
+const PSIZES=[45,35,25,10,5,2.5];
+const PCLS={45:'p-45',35:'p-35',25:'p-25',10:'p-10',5:'p-5',2.5:'p-25s'};
+function platesFor(target,bar){
+  const ps=(target-bar)/2;
+  if(ps<0)return{error:'Target less than bar ('+bar+' lbs)'};
+  let rem=ps,plates=[];
+  for(const p of PSIZES){const n=Math.floor(rem/p);if(n>0){plates.push({w:p,n});rem=Math.round((rem-n*p)*100)/100;}}
+  return{plates,rem};
+}
+function platesHTML(plates){
+  return plates.map(p=>'<span class="plate-pill '+PCLS[p.w]+'">'+p.n+'x'+p.w+'</span>').join('')+'<span class="plate-bar">&nbsp;+ bar</span>';
+}
+function calcPlates(){
+  const t=parseFloat(document.getElementById('plate-weight').value);
+  const b=parseFloat(document.getElementById('bar-weight').value)||45;
+  if(isNaN(t)){showToast('Enter a target weight');return;}
+  const res=platesFor(t,b);
+  const d=document.getElementById('plate-display');d.classList.add('show');
+  if(res.error){document.getElementById('plate-target').textContent=res.error;document.getElementById('plates-row').innerHTML='';document.getElementById('plate-note').textContent='';return;}
+  document.getElementById('plate-target').textContent=t+' lbs — each side:';
+  document.getElementById('plates-row').innerHTML=platesHTML(res.plates);
+  document.getElementById('plate-note').textContent=res.rem>0?'Off by '+res.rem+' lbs — round to nearest plate':'';
+}
+function showPlateInline(weight){
+  const res=platesFor(weight,45);
+  document.getElementById('plate-inline-title').textContent='Plates for '+weight+' lbs';
+  const ok=document.getElementById('plate-inline-ok');
+  ok.textContent='Got it';ok.onclick=()=>document.getElementById('plate-inline').classList.remove('open');
+  if(res.error){
+    document.getElementById('plate-inline-row').innerHTML='<span style="color:var(--muted);font-size:13px">'+res.error+'</span>';
+    document.getElementById('plate-inline-note').textContent='';
+  }else{
+    document.getElementById('plate-inline-row').innerHTML=platesHTML(res.plates);
+    document.getElementById('plate-inline-note').textContent=res.rem>0?'Off by '+res.rem+' lbs':'Per side, 45 lb bar';
+  }
+  document.getElementById('plate-inline').classList.add('open');
+}
+
+// 1RM
+function calc1RM(){
+  const w=parseFloat(document.getElementById('rm-weight').value);
+  const r=parseFloat(document.getElementById('rm-reps').value);
+  if(isNaN(w)||isNaN(r)||r<1){showToast('Enter weight and reps');return;}
+  const orm=r===1?w:Math.round(w*(36/(37-r)));
+  const tm=r5(orm*0.9);
+  document.getElementById('rm-main').textContent='~'+orm+' lbs';
+  document.getElementById('rm-sub').textContent='Estimated 1RM (Brzycki) — suggested TM = '+tm+' lbs (90%)';
+  document.getElementById('rm-result').classList.add('show');
+}
+
+// Settings
+function openSettings(){
+  document.getElementById('maxes-inputs').innerHTML=LIFT_KEYS.map(lk=>`
+    <div class="setting-group">
+      <div class="setting-label">${state.liftNames[lk]||DEFAULT_NAMES[lk]} (lbs)</div>
+      <input class="setting-input" type="number" id="s-max-${lk}" value="${state.maxes[lk]}" inputmode="decimal" step="5">
+    </div>`).join('');
+  document.getElementById('increments-inputs').innerHTML=LIFT_KEYS.map(lk=>`
+    <div class="setting-group">
+      <div class="setting-label">${state.liftNames[lk]||DEFAULT_NAMES[lk]} increment (lbs)</div>
+      <input class="setting-input" type="number" id="s-inc-${lk}" value="${state.increments[lk]}" inputmode="decimal" step="5">
+    </div>`).join('');
+  document.getElementById('lift-name-list').innerHTML=LIFT_KEYS.map(lk=>`
+    <div class="name-edit-row">
+      <span class="name-edit-label">${DEFAULT_NAMES[lk].slice(0,5)}</span>
+      <input class="name-edit-input" type="text" id="s-name-${lk}" value="${state.liftNames[lk]||DEFAULT_NAMES[lk]}">
+    </div>`).join('');
+  renderAbEditList();
+  document.getElementById('settings-overlay').classList.add('open');
+}
+function renderAbEditList(){
+  document.getElementById('ab-edit-list').innerHTML=state.abExercises.map((ex,i)=>`
+    <div class="ab-edit-row">
+      <input class="ab-edit-name" type="text" id="ab-ex-${i}" value="${ex}">
+      <button class="ab-del-btn" onclick="removeAb(${i})" aria-label="Remove">&#215;</button>
+    </div>`).join('');
+}
+function addAbExercise(){
+  // save current inputs first
+  state.abExercises=state.abExercises.map((_,i)=>{const e=document.getElementById('ab-ex-'+i);return e?e.value:_;});
+  state.abExercises.push('New exercise');renderAbEditList();
+}
+function removeAb(i){
+  state.abExercises=state.abExercises.map((_,j)=>{const e=document.getElementById('ab-ex-'+j);return e?e.value:_;});
+  state.abExercises.splice(i,1);renderAbEditList();
+}
+function saveSettings(){
+  LIFT_KEYS.forEach(lk=>{
+    const v=parseFloat(document.getElementById('s-max-'+lk).value);
+    if(!isNaN(v)&&v>0)state.maxes[lk]=v;
+    const inc=parseFloat(document.getElementById('s-inc-'+lk).value);
+    if(!isNaN(inc)&&inc>0)state.increments[lk]=inc;
+    const nm=(document.getElementById('s-name-'+lk).value||'').trim();
+    if(nm)state.liftNames[lk]=nm;
+  });
+  state.abExercises=state.abExercises.map((_,i)=>{const e=document.getElementById('ab-ex-'+i);return e?e.value.trim():_;}).filter(Boolean);
+  save();document.getElementById('settings-overlay').classList.remove('open');render();showToast('Settings saved');
+}
+function confirmReset(){
+  if(!confirm('Reset ALL data? Cannot be undone.'))return;
+  localStorage.removeItem('531_v2');
+  state={...DEF,maxes:{...DEF.maxes},liftNames:{...DEFAULT_NAMES},increments:{...DEF.increments},abExercises:[...DEFAULT_ABS],history:[]};
+  document.getElementById('settings-overlay').classList.remove('open');render();showToast('Data reset');
+}
+
+// Check-in
+let _fat=null,_rpe=null;
+function openCheckin(){
+  _fat=state.checkin?state.checkin.fatigue:null;
+  _rpe=state.checkin?state.checkin.rpe:null;
+  ['fresh','moderate','cooked'].forEach(f=>{
+    document.getElementById('opt-'+f).className='checkin-opt'+(_fat===f?' sel-'+f:'');
+  });
+  const rr=document.getElementById('rpe-row');rr.innerHTML='';
+  for(let i=1;i<=10;i++){
+    const b=document.createElement('button');b.className='rpe-btn'+(_rpe===i?' active':'');
+    b.textContent=i;
+    const ii=i;
+    b.onclick=()=>{_rpe=ii;document.querySelectorAll('.rpe-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');};
+    rr.appendChild(b);
+  }
+  document.getElementById('checkin-notes').value=state.checkin?state.checkin.notes||'':'';
+  document.getElementById('checkin-overlay').classList.add('open');
+}
+function selectFatigue(f){
+  _fat=f;
+  ['fresh','moderate','cooked'].forEach(o=>document.getElementById('opt-'+o).className='checkin-opt'+(f===o?' sel-'+f:''));
+}
+function saveCheckin(){
+  state.checkin={fatigue:_fat,rpe:_rpe,notes:document.getElementById('checkin-notes').value.trim(),date:new Date().toLocaleDateString()};
+  state.bannerDismissed=false;save();
+  document.getElementById('checkin-overlay').classList.remove('open');render();showToast('Check-in saved');
+}
+
+// Log
+function renderLog(){
+  const div=document.getElementById('log-content');
+  if(!state.history||!state.history.length){
+    div.innerHTML='<div class="log-empty">No cycles logged yet.<br>Finish a cycle and tap<br>"next cycle &#8594;" to start your history.</div>';return;
+  }
+  div.innerHTML=state.history.map(e=>{
+    const pills=LIFT_KEYS.map(lk=>'<span class="log-max-pill">'+(e.maxes[lk]||'--')+' '+(state.liftNames[lk]||DEFAULT_NAMES[lk]).slice(0,3).toLowerCase()+'</span>').join('');
+    const ptag=e.phase?'<span class="log-tag phase-'+e.phase+'">'+e.phase+'</span>':'';
+    let ftag='',rtag='';
+    if(e.checkin){
+      if(e.checkin.fatigue)ftag='<span class="log-tag fatigue-'+e.checkin.fatigue+'">'+e.checkin.fatigue+'</span>';
+      if(e.checkin.rpe){const rc=e.checkin.rpe>=8?'rpe-high':e.checkin.rpe>=5?'rpe-mid':'rpe-low';rtag='<span class="log-tag '+rc+'">RPE '+e.checkin.rpe+'</span>';}
+    }
+    const notes=e.checkin&&e.checkin.notes?'<div class="log-notes">"'+e.checkin.notes+'"</div>':'';
+    return '<div class="log-entry"><div class="log-date">Cycle '+e.cycleNum+' &middot; '+e.date+'</div><div class="log-maxes">'+pills+'</div><div class="log-meta">'+ptag+ftag+rtag+'</div>'+notes+'</div>';
+  }).join('');
+}
+
+// Backup
+function exportData(){
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;
+  a.download='531-backup-'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();URL.revokeObjectURL(url);showToast('Backup exported');
+}
+function importData(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const imp=JSON.parse(ev.target.result);
+      if(!imp.maxes)throw new Error('bad');
+      if(!confirm('Replace all current data with backup?'))return;
+      Object.assign(state,imp);save();render();showToast('Backup restored');
+    }catch{showToast('Invalid backup file');}
+  };
+  reader.readAsText(file);e.target.value='';
+}
+
+// Toast
+let _tt;
+function showToast(msg){
+  const t=document.getElementById('toast');t.innerHTML=msg;t.classList.add('show');
+  clearTimeout(_tt);_tt=setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+render();
+</script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>
