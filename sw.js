@@ -1,11 +1,10 @@
 const CACHE = '531-v1';
-const BASE = '/531-strength';
 const ASSETS = [
-  BASE + '/',
-  BASE + '/index.html',
-  BASE + '/manifest.json',
-  BASE + '/icons/icon-192.png',
-  BASE + '/icons/icon-512.png',
+  '/531-strength/',
+  '/531-strength/index.html',
+  '/531-strength/manifest.json',
+  '/531-strength/icons/icon-192.png',
+  '/531-strength/icons/icon-512.png',
 ];
 
 self.addEventListener('install', e => {
@@ -26,6 +25,6 @@ self.addEventListener('fetch', e => {
       const clone = res.clone();
       caches.open(CACHE).then(c => c.put(e.request, clone));
       return res;
-    }))
+    }).catch(() => caches.match('/531-strength/index.html')))
   );
 });
