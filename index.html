@@ -462,9 +462,9 @@ let state=loadState();
 // 5/3/1
 const WPERC=[[0.55,0.625,0.70],[0.625,0.70,0.775],[0.70,0.775,0.85]];
 const WCFG=[
-  {label:'Week 1',sub:'3 sets of 5',reps:['5','5','5+'],hasFSL:true},
-  {label:'Week 2',sub:'3 sets of 5 (heavier)',reps:['5','5','5+'],hasFSL:true},
-  {label:'Week 3',sub:'3 sets of 3',reps:['5','3','1+'],hasFSL:false}
+  {label:'Week 1',sub:'3 sets of 3',reps:['3','3','3+'],hasFSL:true},
+  {label:'Week 2',sub:'3 sets of 3 (heavier)',reps:['3','3','3+'],hasFSL:true},
+  {label:'Week 3',sub:'3 sets of 3 (heavy)',reps:['3','3','1+'],hasFSL:false}
 ];
 function r5(n){return Math.round(n/5)*5;}
 function getSets(tm,wi){return WPERC[wi].map((p,i)=>({weight:r5(tm*p),reps:WCFG[wi].reps[i],isTop:i===2}));}
@@ -516,7 +516,7 @@ function render(){
     const tm=state.maxes[lk];
     const nm=state.liftNames[lk]||DEFAULT_NAMES[lk];
     const sets=getSets(tm,wi);
-    const fsl=state.mode==='one'?getFSL(tm,wi):null;
+    const fsl=(state.mode==='two-a'||state.mode==='two-b')?getFSL(tm,wi):null;
 
     const card=document.createElement('div');
     card.className='lift-card';
