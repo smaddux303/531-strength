@@ -460,14 +460,18 @@ function save(){localStorage.setItem('531_v2',JSON.stringify(state));}
 let state=loadState();
 
 // 5/3/1
-const WPERC=[[0.55,0.625,0.70],[0.625,0.70,0.775],[0.70,0.775,0.85]];
+const WPERC=[[0.65,0.75,0.85],[0.70,0.80,0.90],[0.75,0.85,0.95],[0.40,0.50,0.60]];
 const WCFG=[
-  {label:'Week 1',sub:'3 sets of 3',reps:['3','3','3+'],hasFSL:true},
-  {label:'Week 2',sub:'3 sets of 3 (heavier)',reps:['3','3','3+'],hasFSL:true},
-  {label:'Week 3',sub:'3 sets of 3 (heavy)',reps:['3','3','1+'],hasFSL:false}
+  {label:'Week 1',sub:'5s week',    reps1:['3','3','3+'],reps5:['5','5','5+'],hasFSL:true},
+  {label:'Week 2',sub:'3s week',    reps1:['3','3','3+'],reps5:['3','3','3+'],hasFSL:true},
+  {label:'Week 3',sub:'5/3/1 week', reps1:['3','3','1+'],reps5:['5','3','1+'],hasFSL:true},
+  {label:'Week 4',sub:'deload',     reps1:['5','5','5'], reps5:['5','5','5'], hasFSL:false},
 ];
 function r5(n){return Math.round(n/5)*5;}
-function getSets(tm,wi){return WPERC[wi].map((p,i)=>({weight:r5(tm*p),reps:WCFG[wi].reps[i],isTop:i===2}));}
+function getSets(tm,wi){
+  const reps=state.mode==='one'?WCFG[wi].reps1:WCFG[wi].reps5;
+  return WPERC[wi].map((p,i)=>({weight:r5(tm*p),reps:reps[i],isTop:i===2&&wi!==3}));
+}
 function getFSL(tm,wi){return WCFG[wi].hasFSL?r5(tm*WPERC[wi][0]):null;}
 
 // Pages
@@ -486,13 +490,13 @@ function render(){
   document.getElementById('week-label').textContent=cfg.label;
   document.getElementById('week-sub').textContent=cfg.sub;
   document.getElementById('prev-btn').disabled=state.week===1;
-  document.getElementById('next-btn').disabled=state.week===3;
+  document.getElementById('next-btn').disabled=state.week===4;
   ['one','two-a','two-b'].forEach(m=>document.getElementById('btn-'+m).classList.toggle('active',state.mode===m));
 
   // dots
   const dots=document.getElementById('cycle-dots');
   dots.innerHTML='';
-  for(let i=1;i<=3;i++){
+  for(let i=1;i<=4;i++){
     const d=document.createElement('div');
     d.className='cycle-dot'+(i<state.week?' done':i===state.week?' active':'');
     dots.appendChild(d);
@@ -516,7 +520,7 @@ function render(){
     const tm=state.maxes[lk];
     const nm=state.liftNames[lk]||DEFAULT_NAMES[lk];
     const sets=getSets(tm,wi);
-    const fsl=(state.mode==='two-a'||state.mode==='two-b')?getFSL(tm,wi):null;
+    const fsl=(state.mode==='two-a'||state.mode==='two-b')&&wi!==3?getFSL(tm,wi):null;
 
     const card=document.createElement('div');
     card.className='lift-card';
@@ -623,11 +627,12 @@ function dismissBanner(){state.bannerDismissed=true;save();render();}
 
 // Actions
 function setMode(m){state.mode=m;save();render();}
-function changeWeek(d){state.week=Math.min(3,Math.max(1,state.week+d));save();render();}
+function changeWeek(d){state.week=Math.min(4,Math.max(1,state.week+d));save();render();}
 function toggleCheck(k){state.checks[k]=!state.checks[k];save();render();if(state.checks[k])showToast('Logged &#10003;');}
 function resetChecks(){state.checks={};save();render();showToast('Checks cleared');}
 function nextCycle(){
-  if(!confirm('Advance to next cycle? Maxes will increase by your increments.'))return;
+  if(state.week<4){showToast('Complete the deload week first');return;}
+  if(!confirm('Complete cycle and advance? Maxes will increase by your increments.'))return;
   state.history.unshift({
     date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),
     cycleNum:state.cycleNum,maxes:{...state.maxes},
